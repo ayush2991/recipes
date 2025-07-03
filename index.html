@@ -431,6 +431,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
     </style>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <header class="header">
@@ -454,6 +455,11 @@
                 <div class="divider"></div>
                 <p>Discover extraordinary recipes that transform simple ingredients into memorable experiences</p>
             </section>
+
+            <!-- Search Bar -->
+            <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
+                <input id="searchInput" type="text" placeholder="Search recipes by name or ingredient..." style="width: 100%; max-width: 500px; padding: 0.8rem 1.2rem; border-radius: 24px; border: 2px solid #ffe0b2; font-size: 1.1rem; background: #fffaf3; color: #6d4c41; box-shadow: 0 2px 8px #ffe0b2; outline: none;" oninput="searchRecipes()" />
+            </div>
 
             <section class="recipe-grid" id="recipeGrid">
                 <!-- Recipe cards will be dynamically generated -->
@@ -490,6 +496,24 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- AI Assistant Floating Button -->
+    <button id="aiAssistantBtn" style="position: fixed; bottom: 32px; right: 32px; background: linear-gradient(135deg, #ffb347, #d2691e); color: #fffaf3; border: none; border-radius: 50%; width: 64px; height: 64px; box-shadow: 0 4px 16px rgba(210,105,30,0.18); font-size: 2rem; cursor: pointer; z-index: 2000; display: flex; align-items: center; justify-content: center; transition: background 0.3s;">
+        <span style="font-size: 2.2rem;">🤖</span>
+    </button>
+
+    <!-- AI Assistant Modal -->
+    <div id="aiModal" style="display:none; position:fixed; bottom:110px; right:32px; width:350px; max-width:95vw; background:#fffaf3; border-radius:20px; box-shadow:0 8px 32px rgba(210,105,30,0.18); z-index:3000; border:2px solid #ffe0b2;">
+        <div style="padding:1.2rem 1.2rem 0.5rem 1.2rem; border-radius:20px 20px 0 0; background:linear-gradient(135deg,#ffb347,#ffe0b2); color:#d2691e; font-family:'Pacifico',cursive; font-size:1.3rem; display:flex; align-items:center; justify-content:space-between;">
+            <span>Recipe AI Assistant</span>
+            <button onclick="closeAIModal()" style="background:none; border:none; color:#d2691e; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div id="aiChatHistory" style="padding:1rem; max-height:300px; overflow-y:auto; font-size:1rem; color:#6d4c41;"></div>
+        <form id="aiChatForm" style="display:flex; border-top:1px solid #ffe0b2;">
+            <input id="aiUserInput" type="text" placeholder="Ask to customize a recipe..." style="flex:1; border:none; padding:0.8rem; border-radius:0 0 0 20px; font-size:1rem; background:#fffaf3; color:#6d4c41; outline:none;" required />
+            <button type="submit" style="background:#d2691e; color:#fffaf3; border:none; border-radius:0 0 20px 0; padding:0 1.2rem; font-size:1.2rem; cursor:pointer;">Send</button>
+        </form>
     </div>
 
     <script>
@@ -705,7 +729,12 @@
         // Render recipe cards
         function renderRecipes() {
             const grid = document.getElementById('recipeGrid');
-            grid.innerHTML = recipes.map(recipe => `
+            const list = filteredRecipes !== null ? filteredRecipes : recipes;
+            if (list.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#d2691e;font-size:1.3rem;">No recipes found.</div>';
+                return;
+            }
+            grid.innerHTML = list.map(recipe => `
                 <div class="recipe-card" onclick="openRecipe(${recipe.id})">
                     <div class="recipe-image">${recipe.emoji}</div>
                     <div class="recipe-content">
@@ -815,6 +844,82 @@
 
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', init);
+
+        // SEARCH FUNCTIONALITY
+        let filteredRecipes = null;
+        function searchRecipes() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!query) {
+                filteredRecipes = null;
+                renderRecipes();
+                return;
+            }
+            filteredRecipes = recipes.filter(recipe =>
+                recipe.title.toLowerCase().includes(query) ||
+                recipe.ingredients.some(ing => ing.name.toLowerCase().includes(query))
+            );
+            renderRecipes();
+        }
+
+        // AI ASSISTANT FUNCTIONALITY
+        const aiBtn = document.getElementById('aiAssistantBtn');
+        const aiModal = document.getElementById('aiModal');
+        const aiChatForm = document.getElementById('aiChatForm');
+        const aiUserInput = document.getElementById('aiUserInput');
+        const aiChatHistory = document.getElementById('aiChatHistory');
+
+        aiBtn.onclick = function() {
+            aiModal.style.display = 'block';
+            aiUserInput.focus();
+        };
+        function closeAIModal() {
+            aiModal.style.display = 'none';
+        }
+
+        aiChatForm.onsubmit = async function(e) {
+            e.preventDefault();
+            const userMsg = aiUserInput.value.trim();
+            if (!userMsg) return;
+            appendAIMessage('user', userMsg);
+            aiUserInput.value = '';
+            aiUserInput.disabled = true;
+            appendAIMessage('ai', '<em>Thinking...</em>');
+            const aiResponse = await getGeminiResponse(userMsg);
+            aiChatHistory.lastElementChild.innerHTML = marked.parse(aiResponse);
+            aiUserInput.disabled = false;
+            aiUserInput.focus();
+        };
+
+        function appendAIMessage(role, text) {
+            const div = document.createElement('div');
+            div.style.margin = '0.5rem 0';
+            div.style.textAlign = role === 'user' ? 'right' : 'left';
+            div.innerHTML = role === 'user' ? `<strong>You:</strong> ${text}` : `<strong>AI:</strong> ${text}`;
+            aiChatHistory.appendChild(div);
+            aiChatHistory.scrollTop = aiChatHistory.scrollHeight;
+        }
+
+        // Gemini API integration (replace YOUR_API_KEY with your actual Gemini API key)
+        async function getGeminiResponse(userPrompt) {
+            try {
+                const apiKey = 'YOUR_API_KEY'; // <-- Replace with your Gemini API key
+                const context = `You are a culinary AI assistant. The user may ask to customize a recipe. Here are the available recipes: ${JSON.stringify(recipes)}. If the user asks to customize a recipe, suggest ingredient swaps, dietary adjustments, or flavor enhancements. Reply in a friendly, concise way.`;
+                const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + apiKey, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: 'user', parts: [{ text: context + '\nUser: ' + userPrompt }] }]
+                    })
+                });
+                const data = await res.json();
+                if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+                    return data.candidates[0].content.parts.map(p => p.text).join(' ');
+                }
+                return 'Sorry, I could not generate a response.';
+            } catch (e) {
+                return 'Sorry, there was an error connecting to the AI service.';
+            }
+        }
     </script>
 </body>
 </html>
