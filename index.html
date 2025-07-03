@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Culinary Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fff8f0 url('https://www.transparenttextures.com/patterns/food.png'); /* subtle food pattern */
+            min-height: 100vh;
+            color: #4e342e;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: #fff3e0;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(160, 82, 45, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 2px solid #ffe0b2;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 2.3rem;
+            font-family: 'Pacifico', cursive, sans-serif;
+            color: #d2691e;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 8px #ffe0b2;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #6d4c41;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            transition: color 0.3s, border-bottom 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-links a:hover {
+            color: #d2691e;
+            border-bottom: 2px solid #d2691e;
+        }
+
+        /* Main Content */
+        .main {
+            padding: 3rem 0;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            color: #4e342e;
+            margin-bottom: 4rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-family: 'Pacifico', cursive, sans-serif;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #d2691e;
+            letter-spacing: 2px;
+        }
+
+        .hero .divider {
+            width: 80px;
+            height: 6px;
+            background: linear-gradient(90deg, #ffb347 0%, #ffcc80 100%);
+            border-radius: 3px;
+            margin: 0.5rem auto 1.5rem auto;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+            color: #6d4c41;
+        }
+
+        /* Recipe Grid */
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .recipe-card {
+            background: #fffaf3;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(160, 82, 45, 0.10);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 2px solid #ffe0b2;
+            position: relative;
+        }
+
+        .recipe-card:hover {
+            transform: scale(1.03) translateY(-6px);
+            box-shadow: 0 16px 48px rgba(210, 105, 30, 0.18);
+            border-color: #ffb347;
+        }
+
+        .recipe-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #ffe0b2, #ffb347);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: #fff8f0;
+            text-shadow: 0 2px 8px #d2691e;
+        }
+
+        .recipe-content {
+            padding: 1.7rem 1.5rem 1.2rem 1.5rem;
+        }
+
+        .recipe-title {
+            font-size: 1.6rem;
+            font-family: 'Pacifico', cursive, sans-serif;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #d2691e;
+        }
+
+        .recipe-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: #a1887f;
+            font-size: 1rem;
+        }
+
+        .recipe-description {
+            color: #6d4c41;
+            line-height: 1.5;
+        }
+
+        /* Recipe Detail Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 236, 179, 0.92);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #fffaf3;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(210, 105, 30, 0.18);
+            position: relative;
+            border: 2px solid #ffe0b2;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #ffb347, #ffe0b2);
+            color: #4e342e;
+            padding: 2rem;
+            position: relative;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #fff3e0;
+            border: none;
+            color: #d2691e;
+            font-size: 2rem;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #ffb347;
+            color: #fffaf3;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .recipe-detail-title {
+            font-size: 2.5rem;
+            font-family: 'Pacifico', cursive, sans-serif;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #d2691e;
+        }
+
+        .recipe-detail-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+            color: #6d4c41;
+        }
+
+        .servings-control {
+            background: #fff3e0;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(210, 105, 30, 0.08);
+        }
+
+        .servings-control h3 {
+            margin-bottom: 1rem;
+            color: #d2691e;
+            font-family: 'Pacifico', cursive, sans-serif;
+        }
+
+        .servings-input-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .servings-btn {
+            background: linear-gradient(135deg, #ffb347, #d2691e);
+            color: #fffaf3;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .servings-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 179, 71, 0.25);
+            background: #d2691e;
+            color: #fff8f0;
+        }
+
+        .servings-input {
+            background: #fffaf3;
+            border: 2px solid #ffe0b2;
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            font-size: 1.1rem;
+            text-align: center;
+            width: 80px;
+            transition: border-color 0.3s;
+        }
+
+        .servings-input:focus {
+            outline: none;
+            border-color: #d2691e;
+        }
+
+        .ingredients-section, .instructions-section {
+            margin-bottom: 2rem;
+        }
+
+        .ingredients-section h3, .instructions-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #d2691e;
+            font-family: 'Pacifico', cursive, sans-serif;
+            position: relative;
+        }
+
+        .ingredients-section h3::after, .instructions-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, #ffb347, #ffe0b2);
+            border-radius: 2px;
+        }
+
+        .ingredients-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .ingredient-item {
+            background: #fff3e0;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #ffb347;
+            transition: all 0.3s;
+        }
+
+        .ingredient-item:hover {
+            background: #ffe0b2;
+            transform: translateX(5px);
+        }
+
+        .instructions-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .instruction-item {
+            counter-increment: step-counter;
+            background: #fffaf3;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border-left: 4px solid #ffb347;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(210, 105, 30, 0.05);
+        }
+
+        .instruction-item::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #ffb347, #d2691e);
+            color: #fffaf3;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(255, 179, 71, 0.18);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .recipe-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+
+            .servings-input-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .ingredients-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .recipe-card {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .modal {
+            animation: fadeIn 0.3s ease-out;
+        }
+        /* Google Fonts for culinary style */
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+    </style>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" />
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">Culinary Canvas</div>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#recipes">Recipes</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <section class="hero">
+                <h1>Culinary Canvas</h1>
+                <div class="divider"></div>
+                <p>Discover extraordinary recipes that transform simple ingredients into memorable experiences</p>
+            </section>
+
+            <section class="recipe-grid" id="recipeGrid">
+                <!-- Recipe cards will be dynamically generated -->
+            </section>
+        </div>
+    </main>
+
+    <!-- Recipe Detail Modal -->
+    <div class="modal" id="recipeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <h2 class="recipe-detail-title" id="modalTitle"></h2>
+                <div class="recipe-detail-meta" id="modalMeta"></div>
+            </div>
+            <div class="modal-body">
+                <div class="servings-control">
+                    <h3>Adjust Servings</h3>
+                    <div class="servings-input-group">
+                        <button class="servings-btn" onclick="adjustServings(-1)">-</button>
+                        <input type="number" class="servings-input" id="servingsInput" value="4" min="1" max="20" onchange="updateIngredients()">
+                        <button class="servings-btn" onclick="adjustServings(1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="ingredients-section">
+                    <h3>Ingredients</h3>
+                    <ul class="ingredients-list" id="ingredientsList"></ul>
+                </div>
+                
+                <div class="instructions-section">
+                    <h3>Instructions</h3>
+                    <ol class="instructions-list" id="instructionsList"></ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Recipe Database
+        const recipes = [
+            {
+                id: 1,
+                title: "Instant Pot Lentil Curry",
+                emoji: "🍛",
+                time: "25 min",
+                difficulty: "Easy",
+                originalServings: 8,
+                description: "Hearty red lentil curry with coconut milk and warming spices - perfect for meal prep",
+                ingredients: [
+                    { name: "Red lentils", amount: 400, unit: "g" },
+                    { name: "Coconut milk", amount: 800, unit: "ml" },
+                    { name: "Vegetable broth", amount: 600, unit: "ml" },
+                    { name: "Diced tomatoes", amount: 400, unit: "g" },
+                    { name: "Yellow onion", amount: 2, unit: "large" },
+                    { name: "Garlic cloves", amount: 6, unit: "cloves" },
+                    { name: "Fresh ginger", amount: 30, unit: "g" },
+                    { name: "Curry powder", amount: 15, unit: "g" },
+                    { name: "Turmeric", amount: 5, unit: "g" },
+                    { name: "Cumin", amount: 5, unit: "g" },
+                    { name: "Coconut oil", amount: 30, unit: "ml" }
+                ],
+                instructions: [
+                    "Set Instant Pot to sauté mode. Heat coconut oil and cook diced onion for 5 minutes.",
+                    "Add minced garlic, ginger, curry powder, turmeric, and cumin. Cook for 1 minute.",
+                    "Add rinsed red lentils, coconut milk, vegetable broth, and diced tomatoes.",
+                    "Secure lid and set to high pressure for 12 minutes with natural release.",
+                    "Once pressure releases, stir well and adjust seasoning with salt and pepper.",
+                    "Let cool completely before dividing into meal prep containers.",
+                    "Refrigerate for up to 5 days or freeze for up to 3 months.",
+                    "Serve over rice, quinoa, or with naan bread."
+                ]
+            },
+            {
+                id: 2,
+                title: "Batch Veggie Chili",
+                emoji: "🌶️",
+                time: "30 min",
+                difficulty: "Easy",
+                originalServings: 10,
+                description: "Protein-packed three-bean chili with vegetables - freezes beautifully",
+                ingredients: [
+                    { name: "Black beans", amount: 800, unit: "g" },
+                    { name: "Kidney beans", amount: 400, unit: "g" },
+                    { name: "Pinto beans", amount: 400, unit: "g" },
+                    { name: "Diced tomatoes", amount: 800, unit: "g" },
+                    { name: "Tomato paste", amount: 90, unit: "g" },
+                    { name: "Bell peppers", amount: 3, unit: "large" },
+                    { name: "Yellow onions", amount: 2, unit: "large" },
+                    { name: "Corn kernels", amount: 300, unit: "g" },
+                    { name: "Vegetable broth", amount: 500, unit: "ml" },
+                    { name: "Chili powder", amount: 20, unit: "g" },
+                    { name: "Cumin", amount: 10, unit: "g" },
+                    { name: "Smoked paprika", amount: 5, unit: "g" }
+                ],
+                instructions: [
+                    "Sauté diced onions and bell peppers in Instant Pot for 5 minutes.",
+                    "Add tomato paste, chili powder, cumin, and smoked paprika. Cook 1 minute.",
+                    "Add all beans (drained and rinsed), diced tomatoes, corn, and vegetable broth.",
+                    "Pressure cook on high for 15 minutes with natural release.",
+                    "Stir well and adjust seasoning. Add salt, pepper, and hot sauce to taste.",
+                    "Cool completely before portioning into freezer-safe containers.",
+                    "Freeze for up to 6 months or refrigerate for up to 1 week.",
+                    "Serve with cornbread, over baked potatoes, or with tortilla chips."
+                ]
+            },
+            {
+                id: 3,
+                title: "Quinoa Stuffed Peppers",
+                emoji: "🫑",
+                time: "35 min",
+                difficulty: "Medium",
+                originalServings: 12,
+                description: "Colorful bell peppers stuffed with quinoa, vegetables, and cheese",
+                ingredients: [
+                    { name: "Bell peppers", amount: 12, unit: "large" },
+                    { name: "Quinoa", amount: 300, unit: "g" },
+                    { name: "Vegetable broth", amount: 750, unit: "ml" },
+                    { name: "Black beans", amount: 400, unit: "g" },
+                    { name: "Corn kernels", amount: 200, unit: "g" },
+                    { name: "Diced tomatoes", amount: 400, unit: "g" },
+                    { name: "Shredded cheese", amount: 200, unit: "g" },
+                    { name: "Yellow onion", amount: 1, unit: "large" },
+                    { name: "Garlic cloves", amount: 4, unit: "cloves" },
+                    { name: "Cumin", amount: 5, unit: "g" },
+                    { name: "Paprika", amount: 5, unit: "g" },
+                    { name: "Olive oil", amount: 30, unit: "ml" }
+                ],
+                instructions: [
+                    "Cut tops off peppers and remove seeds. Trim bottom slightly if needed to stand upright.",
+                    "Cook quinoa in vegetable broth according to package directions.",
+                    "Sauté diced onion and garlic in olive oil until softened.",
+                    "Mix cooked quinoa with sautéed vegetables, beans, corn, diced tomatoes, and spices.",
+                    "Stuff peppers with quinoa mixture and top with cheese.",
+                    "Add 1 cup water to Instant Pot and place trivet inside.",
+                    "Arrange stuffed peppers on trivet. Pressure cook high for 15 minutes.",
+                    "Quick release pressure. Let cool before freezing or refrigerating."
+                ]
+            },
+            {
+                id: 4,
+                title: "Mediterranean Chickpea Stew",
+                emoji: "🥘",
+                time: "20 min",
+                difficulty: "Easy",
+                originalServings: 8,
+                description: "Rich tomato-based stew with chickpeas, spinach, and Mediterranean herbs",
+                ingredients: [
+                    { name: "Chickpeas", amount: 800, unit: "g" },
+                    { name: "Diced tomatoes", amount: 800, unit: "g" },
+                    { name: "Fresh spinach", amount: 200, unit: "g" },
+                    { name: "Vegetable broth", amount: 500, unit: "ml" },
+                    { name: "Yellow onion", amount: 1, unit: "large" },
+                    { name: "Garlic cloves", amount: 6, unit: "cloves" },
+                    { name: "Kalamata olives", amount: 100, unit: "g" },
+                    { name: "Sun-dried tomatoes", amount: 60, unit: "g" },
+                    { name: "Olive oil", amount: 45, unit: "ml" },
+                    { name: "Dried oregano", amount: 5, unit: "g" },
+                    { name: "Dried basil", amount: 5, unit: "g" },
+                    { name: "Red pepper flakes", amount: 2, unit: "g" }
+                ],
+                instructions: [
+                    "Sauté diced onion in olive oil using Instant Pot sauté function.",
+                    "Add minced garlic, oregano, basil, and red pepper flakes. Cook 1 minute.",
+                    "Add chickpeas, diced tomatoes, vegetable broth, and chopped sun-dried tomatoes.",
+                    "Pressure cook on high for 10 minutes with quick release.",
+                    "Stir in fresh spinach and sliced olives until spinach wilts.",
+                    "Season with salt, pepper, and lemon juice to taste.",
+                    "Cool completely before storing in meal prep containers.",
+                    "Serve over rice, pasta, or with crusty bread."
+                ]
+            },
+            {
+                id: 5,
+                title: "Coconut Rice & Beans",
+                emoji: "🥥",
+                time: "25 min",
+                difficulty: "Easy",
+                originalServings: 10,
+                description: "Creamy coconut rice with black beans and cilantro - a complete protein meal",
+                ingredients: [
+                    { name: "Jasmine rice", amount: 400, unit: "g" },
+                    { name: "Coconut milk", amount: 800, unit: "ml" },
+                    { name: "Vegetable broth", amount: 400, unit: "ml" },
+                    { name: "Black beans", amount: 600, unit: "g" },
+                    { name: "Yellow onion", amount: 1, unit: "large" },
+                    { name: "Garlic cloves", amount: 4, unit: "cloves" },
+                    { name: "Fresh cilantro", amount: 40, unit: "g" },
+                    { name: "Lime juice", amount: 60, unit: "ml" },
+                    { name: "Coconut oil", amount: 30, unit: "ml" },
+                    { name: "Ground cumin", amount: 5, unit: "g" },
+                    { name: "Turmeric", amount: 3, unit: "g" },
+                    { name: "Bay leaves", amount: 2, unit: "leaves" }
+                ],
+                instructions: [
+                    "Rinse jasmine rice until water runs clear.",
+                    "Sauté diced onion and garlic in coconut oil until fragrant.",
+                    "Add rice, cumin, turmeric, and bay leaves. Stir for 2 minutes.",
+                    "Add coconut milk, vegetable broth, and drained black beans.",
+                    "Pressure cook on high for 12 minutes with natural release for 10 minutes.",
+                    "Remove bay leaves and fluff rice with a fork.",
+                    "Stir in fresh cilantro and lime juice.",
+                    "Portion into containers when cool. Great for meal prep lunches."
+                ]
+            },
+            {
+                id: 6,
+                title: "Vegetable Curry Soup",
+                emoji: "🍲",
+                time: "30 min",
+                difficulty: "Easy",
+                originalServings: 12,
+                description: "Warming curry soup packed with seasonal vegetables and coconut milk",
+                ingredients: [
+                    { name: "Sweet potatoes", amount: 600, unit: "g" },
+                    { name: "Cauliflower", amount: 400, unit: "g" },
+                    { name: "Carrots", amount: 300, unit: "g" },
+                    { name: "Coconut milk", amount: 800, unit: "ml" },
+                    { name: "Vegetable broth", amount: 1000, unit: "ml" },
+                    { name: "Yellow onion", amount: 1, unit: "large" },
+                    { name: "Fresh ginger", amount: 40, unit: "g" },
+                    { name: "Garlic cloves", amount: 6, unit: "cloves" },
+                    { name: "Red curry paste", amount: 30, unit: "g" },
+                    { name: "Coconut oil", amount: 30, unit: "ml" },
+                    { name: "Lime juice", amount: 45, unit: "ml" },
+                    { name: "Fresh cilantro", amount: 30, unit: "g" }
+                ],
+                instructions: [
+                    "Dice sweet potatoes, cauliflower, and carrots into uniform pieces.",
+                    "Sauté onion, ginger, and garlic in coconut oil until fragrant.",
+                    "Add curry paste and cook for 1 minute until aromatic.",
+                    "Add all vegetables, coconut milk, and vegetable broth.",
+                    "Pressure cook on high for 8 minutes with quick release.",
+                    "Stir in lime juice and adjust seasoning with salt and pepper.",
+                    "Garnish with fresh cilantro before serving.",
+                    "Freezes well for up to 4 months in portion-sized containers."
+                ]
+            }
+        ];
+
+        let currentRecipe = null;
+        let currentServings = 4;
+
+        // Initialize the app
+        function init() {
+            renderRecipes();
+        }
+
+        // Render recipe cards
+        function renderRecipes() {
+            const grid = document.getElementById('recipeGrid');
+            grid.innerHTML = recipes.map(recipe => `
+                <div class="recipe-card" onclick="openRecipe(${recipe.id})">
+                    <div class="recipe-image">${recipe.emoji}</div>
+                    <div class="recipe-content">
+                        <h3 class="recipe-title">${recipe.title}</h3>
+                        <div class="recipe-meta">
+                            <span>⏱️ ${recipe.time}</span>
+                            <span>📊 ${recipe.difficulty}</span>
+                        </div>
+                        <p class="recipe-description">${recipe.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open recipe modal
+        function openRecipe(recipeId) {
+            currentRecipe = recipes.find(r => r.id === recipeId);
+            if (!currentRecipe) return;
+
+            currentServings = currentRecipe.originalServings;
+            document.getElementById('servingsInput').value = currentServings;
+            
+            document.getElementById('modalTitle').textContent = currentRecipe.title;
+            document.getElementById('modalMeta').innerHTML = `
+                <span>⏱️ ${currentRecipe.time}</span>
+                <span>📊 ${currentRecipe.difficulty}</span>
+                <span>👥 ${currentRecipe.originalServings} servings</span>
+            `;
+            
+            updateIngredients();
+            renderInstructions();
+            
+            document.getElementById('recipeModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('recipeModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Adjust servings
+        function adjustServings(change) {
+            const input = document.getElementById('servingsInput');
+            const newValue = parseInt(input.value) + change;
+            if (newValue >= 1 && newValue <= 20) {
+                input.value = newValue;
+                updateIngredients();
+            }
+        }
+
+        // Update ingredients based on servings
+        function updateIngredients() {
+            if (!currentRecipe) return;
+            
+            const servings = parseInt(document.getElementById('servingsInput').value);
+            const multiplier = servings / currentRecipe.originalServings;
+            
+            const ingredientsList = document.getElementById('ingredientsList');
+            ingredientsList.innerHTML = currentRecipe.ingredients.map(ingredient => {
+                const scaledAmount = ingredient.amount * multiplier;
+                const displayAmount = formatAmount(scaledAmount);
+                
+                return `
+                    <li class="ingredient-item">
+                        <strong>${displayAmount} ${ingredient.unit}</strong> ${ingredient.name}
+                    </li>
+                `;
+            }).join('');
+        }
+
+        // Format ingredient amounts
+        function formatAmount(amount) {
+            if (amount < 1) {
+                return (Math.round(amount * 100) / 100).toString();
+            } else if (amount < 10) {
+                return (Math.round(amount * 10) / 10).toString();
+            } else {
+                return Math.round(amount).toString();
+            }
+        }
+
+        // Render instructions
+        function renderInstructions() {
+            if (!currentRecipe) return;
+            
+            const instructionsList = document.getElementById('instructionsList');
+            instructionsList.innerHTML = currentRecipe.instructions.map(instruction => `
+                <li class="instruction-item">${instruction}</li>
+            `).join('');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('recipeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Handle keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
